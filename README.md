@@ -20,5 +20,7 @@ optional arguments:
   -a, --all_list    Save IP's, and hostnames to a list
   ```
  
-Example:```
-python3 ping-scanner.py -w <NIC> -l```
+Example:
+```
+python3 ping-scanner.py -w <NIC> -l
+```
