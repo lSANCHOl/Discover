@@ -1,4 +1,4 @@
-# network-scanner
+# DISCOVER
 Discover who's on the network by pinging devices using the ICMP protocol
 
 
