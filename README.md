@@ -1,5 +1,5 @@
 # network-scanner
-Discover whos on the network by pinging devices using the ICMP protocol
+Discover who's on the network by pinging devices using the ICMP protocol
 
 
 <p align="center">
