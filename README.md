@@ -22,5 +22,5 @@ optional arguments:
  
 Example:
 ```
-python3 ping-scanner.py -w <NIC> -l
+python3 discover.py -w <NIC> -l
 ```
