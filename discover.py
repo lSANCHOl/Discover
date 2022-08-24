@@ -10,7 +10,7 @@ import argparse
 import os
 import sys
 import socket
-
+import netifaces
 
 # Colours
 BANNER = '\033[1;91m'
@@ -25,7 +25,6 @@ ENDC = '\033[0m'
 BOLD = '\033[1m'
 UNDERLINE = '\033[4m'
 
-
 # Banner
 def banner():
     print('\n'+'-'*50)
@@ -33,8 +32,7 @@ def banner():
 ░█░█░░█░░▀▀█░█░░░█░█░▀▄▀░█▀▀░█▀▄
 ░▀▀░░▀▀▀░▀▀▀░▀▀▀░▀▀▀░░▀░░▀▀▀░▀░▀ By Sancho{ENDC}''')
 
-
-def ping_sweep(cidr_network,me):
+def ping_sweep(cidr_network):
     print('-'*50)
     time.sleep(1)
     def worker():
@@ -78,11 +76,11 @@ def ping_sweep(cidr_network,me):
 
     # Network to scan
     all_hosts = list(ipaddress.ip_network(cidr_network).hosts())
-    ip = ipaddress.ip_address(me)
+    ip = ipaddress.ip_address(ip_addr)
     index = all_hosts.index(ip)
     del all_hosts[index]
 
-    print(f'Scanning network of: {WARNING}{cidr_network}{ENDC} [{BOLD}{OKPINK}{me}{ENDC}]')
+    print(f'Scanning network of: {WARNING}{cidr_network}{ENDC} [{BOLD}{OKPINK}{ip_addr}{ENDC}]')
     print(f'Time started: {BOLD}{str(datetime.now())}{ENDC}')
     print('-'*50)
     t1 = datetime.now()
@@ -114,7 +112,6 @@ def subnet_calc(ip_cidr):
     final = str(network)+'/'+str(cidr)
     return(final)
 
-
 parser = argparse.ArgumentParser(description='Scan for devices on a network using pings')
 parser.add_argument('-q', '--quiet', action='store_true', help='don\'t display banner')
 parser.add_argument('-w', '--WifiCard', metavar='', help='Specify NIC to use')
@@ -122,31 +119,29 @@ parser.add_argument('-l', '--list', action='store_true', help='Save IP\'s to a l
 parser.add_argument('-a', '--all_list', action='store_true', help='Save IP\'s, and hostnames to a list')
 args = parser.parse_args()
 
-
 if __name__=='__main__':
     if not args.quiet:
         banner()
-    
     if len(sys.argv)==1:
         parser.print_help(sys.stderr)
         sys.exit(1)
     else:
-        ip_cidr = os.popen('ip address | grep brd | grep '+args.WifiCard+' | cut -d " " -f 6').read().strip()
-        me = os.popen('ip address | grep brd | grep '+args.WifiCard+' | cut -d / -f 1').read().strip().split(' ')[-1]
-
+        ip_addr = netifaces.ifaddresses(args.WifiCard)[netifaces.AF_INET][0]['addr']
+        netmask = netifaces.ifaddresses(args.WifiCard)[netifaces.AF_INET][0]['netmask']
+        cidr = sum(bin(int(x)).count('1') for x in netmask.split('.'))
+        ip_cidr =  str(ip_addr)+'/'+str(cidr)
     try:
-        ping_sweep(subnet_calc(ip_cidr),me)
+        ping_sweep(subnet_calc(ip_cidr))
         if args.list:
-            file1 = open('ip_list.txt', 'w')
+            file = open('ip_list.txt', 'w')
             for i in range(len(hosts)):
-                n = file1.write(f'{str(hosts[i])} \n')
-            file1.close()
+                file.write(f'{str(hosts[i])} \n')
+            file.close()
         elif args.all_list:
-            file1 = open('all_list.txt', 'w')
+            file = open('all_list.txt', 'w')
             for i in range(len(hosts)):
-                n = file1.write(f'{i+1}. {hosts[i]} {macs[i]} ({hostnames[i]})\n')
-            file1.close()
+                file.write(f'{i+1}. {hosts[i]} {macs[i]} ({hostnames[i]})\n')
+            file.close()
     except KeyboardInterrupt:
         print('GoodBye!')
         sys.exit()
-
